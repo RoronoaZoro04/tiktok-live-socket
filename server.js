@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 const server = http.createServer(app);
 
 // Create a WebSocket server on the path /ws
-const wss = new WebSocket.Server({ server, path: '/ws' });
+const wss = new WebSocket.Server({ server, path: '/tikfinity/ws' });
 
 // Function to broadcast data to all connected clients
 function broadcast(data) {
@@ -58,6 +58,10 @@ wss.on('connection', (ws) => {
   });
 });
 
+app.get('/tikfinity', (req, res) => {
+    res.render('index');
+  });
+  
 // Start the server
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
