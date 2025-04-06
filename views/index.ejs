@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Real-Time TikFinity Events</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #events { margin-top: 20px; }
+    .event { border-bottom: 1px solid #ccc; padding: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Real-Time TikFinity Events</h1>
+  <div id="events">
+    <!-- Live events will appear here -->
+  </div>
+
+  <script>
+    // Connect to the WebSocket server (adjust if you use a different host/port)
+    const socket = new WebSocket(`ws://${location.host}/ws`);
+
+    socket.onopen = () => {
+      console.log('Connected to WebSocket server.');
+    };
+
+    socket.onmessage = (event) => {
+      console.log('Received event:', event.data);
+      const eventData = JSON.parse(event.data);
+      displayEvent(eventData);
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket connection closed.');
+    };
+
+    // Function to display incoming events in the #events div
+    function displayEvent(data) {
+      const eventsDiv = document.getElementById('events');
+      const eventElement = document.createElement('div');
+      eventElement.className = 'event';
+      eventElement.innerHTML = `<strong>Type:</strong> ${data.type} <br>
+                                <strong>User:</strong> ${data.username || 'N/A'} <br>
+                                <strong>Timestamp:</strong> ${data.timestamp}`;
+      eventsDiv.prepend(eventElement);
+    }
+  </script>
+</body>
+</html>

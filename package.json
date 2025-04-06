@@ -1,0 +1,14 @@
+{
+  "name": "tikfinity-server",
+  "version": "1.0.0",
+  "description": "Receive TikFinity events via WebSockets and display them in real time using EJS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.13.0",
+    "ejs": "^3.1.8"
+  }
+}
