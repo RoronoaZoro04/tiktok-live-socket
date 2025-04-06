@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
@@ -7,25 +6,20 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Set EJS as the view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-// Serve static files if needed (e.g., CSS, client-side JS)
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json()); // to parse JSON body from TikFinity
 
-// Home route to render our EJS page
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-// Create an HTTP server
+// WebSocket server
 const server = http.createServer(app);
-
-// Create a WebSocket server on the path /ws
 const wss = new WebSocket.Server({ server, path: '/tikfinity/ws' });
 
-// Function to broadcast data to all connected clients
+// Broadcast function
 function broadcast(data) {
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -34,36 +28,33 @@ function broadcast(data) {
   });
 }
 
-// When a WebSocket connection is established (from TikFinity or a browser)
+// WebSocket connection
 wss.on('connection', (ws) => {
-  console.log('New WebSocket connection established.');
-
-  // Listen for incoming messages (events from TikFinity)
-  ws.on('message', (message) => {
-    console.log('Received message:', message);
-    try {
-      const eventData = JSON.parse(message);
-      console.log('Parsed event data:', eventData);
-      // Optionally, process or store the eventData here
-
-      // Broadcast the event data to all connected clients (including the sender)
-      broadcast(eventData);
-    } catch (err) {
-      console.error('Error parsing JSON:', err);
-    }
-  });
-
-  ws.on('close', () => {
-    console.log('WebSocket connection closed.');
-  });
+  console.log('New WebSocket connection');
 });
 
-app.get('/tikfinity', (req, res) => {
-    res.render('index');
+// ✅ HTTP Webhook route for TikFinity
+app.post('/tikfinity/webhook', (req, res) => {
+  const data = req.body;
+  console.log('Received webhook from TikFinity:', data);
+
+  // Broadcast to WebSocket clients
+  broadcast({
+    type: 'webhook',
+    ...data
   });
-  
-// Start the server
+
+  res.status(200).send('Received');
+});
+
+// TikFinity Viewer Page
+app.get('/tikfinity', (req, res) => {
+  res.render('index');
+});
+
+// Start server
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`Configure TikFinity with the WebSocket URL: ws://aproapemoka.ro:${PORT}/ws`);
+  console.log(`Server running at https://api.ytmultidownloader.com:${PORT}`);
+  console.log(`WebSocket: wss://api.ytmultidownloader.com/tikfinity/ws`);
+  console.log(`Webhook POST: https://api.ytmultidownloader.com/tikfinity/webhook`);
 });
