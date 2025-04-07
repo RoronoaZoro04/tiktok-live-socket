@@ -38,25 +38,52 @@ wss.on('connection', (ws) => {
 });
 
 // API endpoint to handle incoming POST requests from TikFinity (or WordPress)
+// Webhook route to handle incoming POST requests from TikFinity
 app.post('/tikfinity/webhook', (req, res) => {
-  // Log the received data live
+  // Log the received data
   console.log('Received webhook from TikFinity:', req.body);
 
   // Format the event data
   const eventData = {
-    type: 'tiktok-event',
-    username: req.body.value1 || 'Anonymous',
-    message: req.body.value2 || '',
-    gift: req.body.value3 || '',
-    timestamp: Date.now()
+      type: 'tiktok-event',
+      username: req.body.value1 || 'Anonymous',
+      message: req.body.content || '',
+      avatar: req.body.avatar_url || '',
+      likes: parseInt(req.body.likeCount, 10) || 0,
+      totalLikes: parseInt(req.body.totalLikeCount, 10) || 0,
+      timestamp: Date.now(),
+      userId: req.body.userId,
+      tikfinityUserId: req.body.tikfinityUserId,
+      tikfinityUsername: req.body.tikfinityUsername
   };
 
-  // Broadcast the data to all connected WebSocket clients
+  // Check thresholds for likes
+  const interactionThresholds = {
+      likes: 10,
+      totalLikes: 50,
+      shares: 5,  // Assume shares data will be in the webhook in future
+      follows: 2  // Assume follows data will be in the webhook in future
+  };
+
+  let ticketCount = 0;
+
+  if (eventData.likes >= interactionThresholds.likes) {
+      ticketCount += 1; // Allocate 1 ticket per threshold crossed
+  }
+  if (eventData.totalLikes >= interactionThresholds.totalLikes) {
+      ticketCount += 2; // Allocate 2 tickets for crossing totalLikes threshold
+  }
+
+  // Format ticket allocation data
+  eventData.ticketCount = ticketCount;
+
+  // Send data to WebSocket clients
   broadcast(eventData);
 
-  // Respond with a JSON acknowledgment
-  res.status(200).json({ status: 'Received', data: eventData });
+  // Send acknowledgment to TikFinity
+  res.status(200).send('Received');
 });
+
 
 // Start the server
 server.listen(PORT, () => {
