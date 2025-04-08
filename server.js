@@ -35,13 +35,7 @@ wss.on('connection', (ws) => {
 app.post('/tikfinity/webhook', (req, res) => {
   console.log('Received webhook from TikFinity:', req.body);
 
-  const eventData = {
-    type: 'tiktok-event',
-    username: req.body.value1 || 'Anonymous',
-    message: req.body.value2 || '',
-    gift: req.body.value3 || '',
-    timestamp: Date.now()
-  };
+  const eventData = req.body;
 
   broadcast(eventData);
 
